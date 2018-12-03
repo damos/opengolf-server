@@ -16,7 +16,6 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -86,8 +85,6 @@ public class CourseService {
         searchSourceBuilder.query(QueryBuilders.matchQuery(SEARCH_FIELD_NAME, searchTerm)
                                                .fuzziness(FuzzyQueryBuilder.DEFAULT_FUZZINESS)
                                                .zeroTermsQuery(MatchQuery.ZeroTermsQuery.ALL));
-
-        SearchRequest request = new SearchRequest().source(searchSourceBuilder);
 
         SearchResponse response = this.searchClient.search(
                                                 new SearchRequest().source(searchSourceBuilder),

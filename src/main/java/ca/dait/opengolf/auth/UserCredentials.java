@@ -12,7 +12,7 @@ public class UserCredentials implements Authentication {
 
     private final String principal;
     private final Collection<GrantedAuthority> authorities;
-    private transient boolean authenticated = false;
+    private transient boolean authenticated;
 
     public UserCredentials(boolean authenticated, String principal, String authorities[]){
         this.authenticated = authenticated;

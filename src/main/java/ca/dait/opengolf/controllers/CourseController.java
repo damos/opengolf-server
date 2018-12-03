@@ -31,7 +31,8 @@ public class CourseController {
     }
 
     @PreAuthorize(OpenGolfConstants.Auth.IS_CONTRIBUTOR)
-    @RequestMapping(method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public Course add(HttpServletResponse response, @RequestBody CourseDetails courseDetails) throws IOException {
         Course result = this.courseService.add(courseDetails);
         response.setStatus(HttpServletResponse.SC_CREATED);
