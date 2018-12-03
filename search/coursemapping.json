@@ -1,0 +1,29 @@
+{
+  "mappings": {
+    "course": {
+      "dynamic": "strict",
+      "properties": {
+        "holes": {
+          "properties": {
+            "lat": {
+              "type": "float",
+              "index": false
+            },
+            "lon": {
+              "type": "float",
+              "index": false
+            }
+          }
+        },
+        "name": {
+          "type": "text",
+          "store": true
+        },
+        "country": {
+          "type": "text",
+          "store": true
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,4 @@
+rootProject.name = 'opengolf-server'
+include 'opengolf-core'
+include 'opengolf-aws'
+

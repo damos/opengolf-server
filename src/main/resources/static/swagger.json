@@ -1,0 +1,393 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "Open Golf course directory",
+    "version": "1.0",
+    "title": "Open Golf"
+  },
+  "basePath": "/api",
+  "schemes": [
+    "http","https"
+  ],
+  "tags": [
+    {
+      "name": "Courses"
+    },
+    {
+      "name": "Session"
+    }
+  ],
+  "paths": {
+    "/course/search": {
+      "get": {
+        "tags": [
+          "Courses"
+        ],
+        "summary": "Search Courses",
+        "description": "Searches the directory for golf courses.",
+        "operationId": "searchCourse",
+        "consumes": [],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "searchTerm",
+            "in": "query",
+            "description": "Search Term",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/SearchResult"
+            }
+          }
+        }
+      }
+    },
+    "/course/{id}": {
+      "get": {
+        "tags": [
+          "Courses"
+        ],
+        "summary": "Get Course",
+        "description": "Get's the course details including gps coordinates for all greens.",
+        "operationId": "getCourse",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Course Id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/CourseDetails"
+            }
+          },
+          "404": {
+            "description": "Course not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Courses"
+        ],
+        "summary": "Update Course",
+        "description": "Update the given courses details.",
+        "operationId": "updateCourse",
+        "consumes": ["application/json"],
+        "produces": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Course Id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CourseDetails"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Course not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Courses"
+        ],
+        "summary": "Delete Course",
+        "description": "Delete the given course from the directory",
+        "operationId": "deleteCourse",
+        "consumes": [],
+        "produces": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Course Id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/course": {
+      "post": {
+        "tags": [
+          "Courses"
+        ],
+        "summary": "Add Course",
+        "description": "Add a course to the directory",
+        "operationId": "addCourse",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CourseDetails"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/CourseAddResult"
+            }
+          }
+        }
+      }
+    },
+    "/session": {
+      "post": {
+        "tags": [
+          "Session"
+        ],
+        "summary": "Login",
+        "description": "User login service.",
+        "operationId": "login",
+        "consumes": [],
+        "produces": [],
+        "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "description": "Username",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "password",
+            "in": "query",
+            "description": "Password",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Authentication failure"
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Session"
+        ],
+        "summary": "Logout",
+        "description": "User logout service.",
+        "operationId": "logout",
+        "consumes": [],
+        "produces": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Authentication failure"
+          }
+        }
+      }
+    },
+    "/session/confirm": {
+      "post": {
+        "tags": [
+          "Session"
+        ],
+        "summary": "Confirm Registration",
+        "description": "Confirm Registration and set new password.",
+        "operationId": "confirm",
+        "consumes": [],
+        "produces": [],
+        "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "description": "Username",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "tempPassword",
+            "in": "query",
+            "description": "Temp Password",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "newPassword",
+            "in": "query",
+            "description": "New Password",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Authentication failure"
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "SearchResult": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CourseSimple"
+          }
+        }
+      }
+    },
+    "CourseSimple": {
+      "type": "object",
+      "required": [ "id", "details" ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "uT6hA2cB4AMCtorZQwhS",
+          "readOnly": true
+        },
+        "details": {
+          "type": "object",
+          "$ref": "#/definitions/CourseDetailsSimple"
+        }
+      }
+    },
+    "CourseDetailsSimple" : {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "Station Creek Golf Club: South"
+        },
+        "country": {
+          "type": "string",
+          "example": "Canada"
+        }
+      }
+    },
+    "Course": {
+      "type": "object",
+      "required": [ "id", "details" ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uT6hA2cB4AMCtorZQwhS",
+            "readOnly": true
+          },
+          "details": {
+            "type": "object",
+            "$ref": "#/definitions/CourseDetails"
+          }
+        }
+    },
+    "CourseDetails" : {
+      "type": "object",
+      "required": [ "name", "country", "holes" ],
+      "properties" : {
+        "name":{
+          "type": "string",
+          "example": "Station Creek Golf Club: South"
+        },
+        "country":{
+          "type": "string",
+          "example": "Canada"
+        },
+        "holes":{
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Hole"
+          }
+        }
+      }
+    },
+    "Hole":{
+      "type": "object",
+      "required": [ "lat", "lon" ],
+      "properties" : {
+        "lat": {
+          "type": "number",
+          "format": "float",
+          "example": 43.95308
+        },
+        "lon": {
+          "type": "number",
+          "format": "float",
+          "example": -79.372577
+        }
+      }
+    },
+    "CourseAddResult" : {
+      "type": "object",
+      "properties" : {
+        "id":{
+          "type": "string",
+          "example": "uT6hA2cB4AMCtorZQwhS"
+        }
+      }
+    },
+    "Login" : {
+      "required": [ "username", "password" ],
+      "properties": {
+        "username": {
+          "type": "string",
+          "example": "username"
+        },
+        "password": {
+          "type": "string",
+          "example": "password"
+        }
+      }
+    }
+  }
+}
