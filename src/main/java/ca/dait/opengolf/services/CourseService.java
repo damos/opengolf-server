@@ -58,7 +58,6 @@ public class CourseService {
                          @Value("${ENV_SEARCH_SCHEME}") String scheme,
                          @Value("${AWS_REGION}") String region){
 
-
         AWS4Signer signer = new AWS4Signer();
         signer.setServiceName(SIGNER_SERVICE_NAME);
         signer.setRegionName(region);
@@ -73,7 +72,7 @@ public class CourseService {
     public CourseDetails get(String id) throws IOException{
         GetRequest getRequest = new GetRequest(SEARCH_INDEX_NAME, SEARCH_TYPE_NAME, id);
         GetResponse response = this.searchClient.get(getRequest, RequestOptions.DEFAULT);
-        return this.mapper.readValue(response.getSourceAsBytes(), CourseDetails.class);
+        return (response.isExists()) ? this.mapper.readValue(response.getSourceAsBytes(), CourseDetails.class) : null;
     }
 
     public CourseSearchResult search(String searchTerm) throws IOException{
@@ -86,9 +85,8 @@ public class CourseService {
                                                .fuzziness(FuzzyQueryBuilder.DEFAULT_FUZZINESS)
                                                .zeroTermsQuery(MatchQuery.ZeroTermsQuery.ALL));
 
-        SearchResponse response = this.searchClient.search(
-                                                new SearchRequest().source(searchSourceBuilder),
-                                                RequestOptions.DEFAULT);
+        SearchResponse response = this.searchClient.search(new SearchRequest().source(searchSourceBuilder),
+                                                           RequestOptions.DEFAULT);
 
         return new CourseSearchResult(Arrays.stream(response.getHits().getHits())
                                             .map(this::searchHitToCourse)
@@ -130,7 +128,6 @@ public class CourseService {
             throw new RuntimeException("Failed to marshal SearchHit result into " + CourseDetails.class.getName(), e);
         }
     }
-
 
     /*
         Java POJO's for the course service.

@@ -7,6 +7,7 @@ import com.auth0.jwk.JwkException;
 import com.auth0.jwk.UrlJwkProvider;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,8 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Service
 public class CredentialsService {
@@ -32,11 +35,20 @@ public class CredentialsService {
     private static final boolean COOKIE_HTTP_ONLY = true;
     private static final int SESSION_COOKIE_MAX_AGE = -1;
 
+    private static final String COGNITO_USERNAME = "cognito:username";
+    private static final String COGNITO_GROUPS = "cognito:groups";
+    private static final String COGNITO_EXPIRATION = "exp";
+
+    @Autowired
+    protected LoginService loginService;
+
     private final boolean cookieIsSecure;
     private final int cookieRefreshTimeout;
 
     private final UrlJwkProvider jwkProvider;
     private final Map<String, Algorithm> algorithms;
+
+    private static final Logger LOGGER = Logger.getLogger(CredentialsService.class.getName());
 
     @Autowired
     public CredentialsService(@Value("${ENV_JWK_URL}") String jwkUrl,
@@ -45,53 +57,75 @@ public class CredentialsService {
 
         this.jwkProvider = new UrlJwkProvider(new URL(jwkUrl));
         this.algorithms = new HashMap<>();
-
         this.cookieIsSecure = cookieIsSecure;
         this.cookieRefreshTimeout = cookieRefreshTimeout;
     }
 
     public UserCredentials verifyCredentials(HttpServletRequest request, HttpServletResponse response){
+        UserCredentials result = null;
         AuthenticationTokens tokens = getAuthenticationTokens(request);
+
         if(tokens.id != null){
-            try {
-                DecodedJWT decodedJWT = JWT.decode(tokens.id);
-                this.verifyJWT(decodedJWT);
-
-                Claim expires = decodedJWT.getClaim("exp");
-                if(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
-                        < expires.asLong().longValue()) {
-
-                    Claim username = decodedJWT.getClaim("cognito:username");
-                    Claim roles = decodedJWT.getClaim("cognito:groups");
-                    return new UserCredentials(true, username.as(String.class), roles.asArray(String.class));
-                }
+            result = this.verifyIdToken(tokens.id);
+            if(result == null){
+                //Unable to find valid credentials in id token,clearing id cookie.
+                this.clearCookie(ID_COOKIE_NAME, response);
             }
-            catch(JwkException e){
-                e.printStackTrace(System.err);
-                //TODO: Add logging
+            else{
+                return result;
             }
-            //Unable to find valid credentials in the request, clearing id cookie.
-            this.clearCookie(ID_COOKIE_NAME, response);
         }
-       // JWT.decode()
+        if(tokens.refresh != null){
+            tokens = this.loginService.refreshTokens(tokens.refresh);
+            if(tokens == null){
+                //Unable to refresh auth tokens with the refresh token, clearing refresh cookie.
+                this.clearCookie(REFRESH_COOKIE_NAME, response);
+            }
+            else{
+                result = this.verifyIdToken(tokens.id);
+                this.save(tokens, response);
+            }
+        }
+        return result;
+    }
+
+    protected UserCredentials verifyIdToken(String token){
+        try {
+            DecodedJWT decodedJWT = JWT.decode(token);
+            this.verifyJWT(decodedJWT);
+
+            Claim expires = decodedJWT.getClaim(COGNITO_EXPIRATION);
+            if(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
+                    < expires.asLong().longValue()) {
+
+                Claim username = decodedJWT.getClaim(COGNITO_USERNAME);
+                Claim roles = decodedJWT.getClaim(COGNITO_GROUPS);
+                return new UserCredentials(true, username.as(String.class), roles.asArray(String.class));
+            }
+        }
+        catch(JwkException | JWTVerificationException e){
+            LOGGER.log(Level.FINEST, "Failed to verify: " + token, e);
+        }
         return null;
     }
 
-    public void save(AuthenticationTokens tokens, HttpServletResponse response){
-        Cookie idCookie = new Cookie(ID_COOKIE_NAME, tokens.id);
-        idCookie.setSecure(this.cookieIsSecure);
-        idCookie.setHttpOnly(COOKIE_HTTP_ONLY);
-        idCookie.setMaxAge(SESSION_COOKIE_MAX_AGE); //TODO: Set this based on token timeout?
-        idCookie.setPath(COOKIE_PATH);
-        response.addCookie(idCookie);
-
-        Cookie refreshCookie = new Cookie(REFRESH_COOKIE_NAME, tokens.refresh);
-        refreshCookie.setSecure(this.cookieIsSecure);
-        refreshCookie.setHttpOnly(COOKIE_HTTP_ONLY);
-        refreshCookie.setMaxAge(this.cookieRefreshTimeout); //30 Days
-        refreshCookie.setPath(COOKIE_PATH);
-        response.addCookie(refreshCookie);
-
+    public void save(AuthenticationTokens tokens, HttpServletResponse response) {
+        if (tokens.id != null) {
+            Cookie idCookie = new Cookie(ID_COOKIE_NAME, tokens.id);
+            idCookie.setSecure(this.cookieIsSecure);
+            idCookie.setHttpOnly(COOKIE_HTTP_ONLY);
+            idCookie.setMaxAge(SESSION_COOKIE_MAX_AGE); //TODO: Set this based on token timeout?
+            idCookie.setPath(COOKIE_PATH);
+            response.addCookie(idCookie);
+        }
+        if (tokens.refresh != null){
+            Cookie refreshCookie = new Cookie(REFRESH_COOKIE_NAME, tokens.refresh);
+            refreshCookie.setSecure(this.cookieIsSecure);
+            refreshCookie.setHttpOnly(COOKIE_HTTP_ONLY);
+            refreshCookie.setMaxAge(this.cookieRefreshTimeout); //30 Days
+            refreshCookie.setPath(COOKIE_PATH);
+            response.addCookie(refreshCookie);
+        }
     }
 
     public void clear(HttpServletResponse response){

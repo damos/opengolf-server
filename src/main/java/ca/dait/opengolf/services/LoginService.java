@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Service
 public class LoginService {
@@ -18,11 +20,14 @@ public class LoginService {
     private static final String USERNAME = "USERNAME";
     private static final String PASSWORD = "PASSWORD";
     private static final String NEW_PASSWORD = "NEW_PASSWORD";
+    private static final String REFRESH_TOKEN = "REFRESH_TOKEN";
 
     private final String userPoolId;
     private final String userPoolClientId;
 
     private final AWSCognitoIdentityProvider cognitoClient;
+
+    private static final Logger LOGGER = Logger.getLogger(LoginService.class.getName());
 
     @Autowired
     public LoginService(@Value("${ENV_USERPOOL_ID}") String userPoolId,
@@ -107,6 +112,27 @@ public class LoginService {
         else{
             throw new UnsupportedUserStateException("User is not in the correct state. Contact your administrator.");
         }
+    }
 
+    public AuthenticationTokens refreshTokens(String refreshToken){
+        Map<String, String> authParams = new HashMap<>();
+        authParams.put(REFRESH_TOKEN, refreshToken);
+
+        AdminInitiateAuthRequest authRequest = new AdminInitiateAuthRequest();
+        authRequest.withAuthParameters(authParams);
+        authRequest.setUserPoolId(this.userPoolId);
+        authRequest.setClientId(this.userPoolClientId);
+        authRequest.withAuthFlow(AuthFlowType.REFRESH_TOKEN_AUTH);
+
+        AdminInitiateAuthResult result = this.cognitoClient.adminInitiateAuth(authRequest);
+
+        if(StringUtils.isNullOrEmpty(result.getChallengeName())){
+            AuthenticationResultType resultType = result.getAuthenticationResult();
+            return new AuthenticationTokens(resultType.getIdToken(), resultType.getRefreshToken());
+        }
+        else{
+            LOGGER.log(Level.FINEST, "Unable to refresh tokens: " + refreshToken);
+            return null;
+        }
     }
 }

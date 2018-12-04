@@ -6,11 +6,12 @@ import ca.dait.opengolf.services.CourseService.Course;
 import ca.dait.opengolf.services.CourseService.CourseDetails;
 import ca.dait.opengolf.services.CourseService.CourseSearchResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @RestController
@@ -18,11 +19,12 @@ import java.io.IOException;
 public class CourseController {
 
     @Autowired
-    CourseService courseService;
+    protected CourseService courseService;
 
     @RequestMapping(value="{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public CourseDetails get(@PathVariable("id") String id) throws IOException {
-        return this.courseService.get(id);
+    public ResponseEntity<CourseDetails> get(@PathVariable("id") String id) throws IOException {
+        CourseDetails result = this.courseService.get(id);
+        return new ResponseEntity<>(result, (result == null) ? HttpStatus.NOT_FOUND : HttpStatus.OK);
     }
 
     @RequestMapping(value="search", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -33,10 +35,9 @@ public class CourseController {
     @PreAuthorize(OpenGolfConstants.Auth.IS_CONTRIBUTOR)
     @RequestMapping(method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Course add(HttpServletResponse response, @RequestBody CourseDetails courseDetails) throws IOException {
+    public ResponseEntity<Course> add(@RequestBody CourseDetails courseDetails) throws IOException {
         Course result = this.courseService.add(courseDetails);
-        response.setStatus(HttpServletResponse.SC_CREATED);
-        return result;
+        return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
     @PreAuthorize(OpenGolfConstants.Auth.IS_CONTRIBUTOR)
