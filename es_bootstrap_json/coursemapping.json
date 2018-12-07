@@ -4,16 +4,9 @@
       "dynamic": "strict",
       "properties": {
         "holes": {
-          "properties": {
-            "lat": {
-              "type": "float",
-              "index": false
-            },
-            "lon": {
-              "type": "float",
-              "index": false
-            }
-          }
+          "type": "geo_point",
+          "store": "true",
+          "index": false
         },
         "name": {
           "type": "text",

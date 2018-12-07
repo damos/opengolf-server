@@ -76,6 +76,7 @@ public class CourseService {
     }
 
     public CourseSearchResult search(String searchTerm) throws IOException{
+
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.from(SEARCH_START);
         searchSourceBuilder.size(SEARCH_MAX_ROWS);
@@ -155,12 +156,12 @@ public class CourseService {
         }
 
         public static class Hole{
-            private float lat;
-            private float lon;
+            private double lat;
+            private double lon;
 
             @JsonCreator
-            public Hole(@JsonProperty("lat") float lat,
-                        @JsonProperty("lon") float lon){
+            public Hole(@JsonProperty("lat") double lat,
+                        @JsonProperty("lon") double lon){
                 this.lat = lat;
                 this.lon = lon;
             }
