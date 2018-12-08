@@ -34,7 +34,7 @@ dependencies {
 
     //Elastic Search High Level client (HTTP REST)
     compile 'org.elasticsearch:elasticsearch:6.4.3'
-    compile 'org.elasticsearch.client:elasticsearch-rest-client:6.4.3'
+    //compile 'org.elasticsearch.client:elasticsearch-rest-client:6.4.3'
     compile 'org.elasticsearch.client:elasticsearch-rest-high-level-client:6.4.3'
 
     //AWS Cognito

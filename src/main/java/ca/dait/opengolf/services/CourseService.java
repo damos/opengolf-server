@@ -6,6 +6,8 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.util.JSONPObject;
+import com.google.common.collect.ImmutableMap;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequestInterceptor;
 import org.elasticsearch.action.delete.DeleteRequest;
@@ -21,7 +23,10 @@ import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.FuzzyQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.functionscore.ExponentialDecayFunctionBuilder;
+import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.index.search.MatchQuery;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -31,6 +36,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class CourseService {
@@ -41,6 +48,13 @@ public class CourseService {
     private static final String SEARCH_TYPE_NAME = "course";
     private static final String SEARCH_FIELD_NAME = "name";
     private static final String SEARCH_FIELD_COUNTRY = "country";
+    private static final String SEARCH_FIELD_HOLES = "holes";
+
+    private static final String SEARCH_ORIGIN_FORMAT = "{\"lat\":%1f,\"lon\":%2f}";
+    private static final String SEARCH_DISTANCE_SCALE = "2km";
+    private static final String SEARCH_LAT = "lat";
+    private static final String SEARCH_LON = "lon";
+
     private static final int SEARCH_START = 0;
     private static final int SEARCH_MAX_ROWS = 50;
 
@@ -75,18 +89,27 @@ public class CourseService {
         return (response.isExists()) ? this.mapper.readValue(response.getSourceAsBytes(), CourseDetails.class) : null;
     }
 
-    public CourseSearchResult search(String searchTerm) throws IOException{
+    public CourseSearchResult search(String searchTerm, Double lat, Double lon) throws IOException{
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.from(SEARCH_START);
         searchSourceBuilder.size(SEARCH_MAX_ROWS);
         searchSourceBuilder.fetchSource(SEARCH_RESULT_INCLUDE_FIELDS, SEARCH_RESULT_EXCLUDE_FIELDS);
 
-        searchSourceBuilder.query(QueryBuilders.matchQuery(SEARCH_FIELD_NAME, searchTerm)
-                                               .fuzziness(FuzzyQueryBuilder.DEFAULT_FUZZINESS)
-                                               .zeroTermsQuery(MatchQuery.ZeroTermsQuery.ALL));
+        QueryBuilder query = (searchTerm == null) ? QueryBuilders.matchAllQuery() :
+                                    QueryBuilders.matchQuery(SEARCH_FIELD_NAME, searchTerm)
+                                                .fuzziness(FuzzyQueryBuilder.DEFAULT_FUZZINESS)
+                                                .zeroTermsQuery(MatchQuery.ZeroTermsQuery.ALL);
 
-        SearchResponse response = this.searchClient.search(new SearchRequest().source(searchSourceBuilder),
+        //If co-ordinates are included, wrap the search in a distance scorer
+        if(lat != null && lon != null){
+            query = QueryBuilders.functionScoreQuery(query,
+                    new ExponentialDecayFunctionBuilder(SEARCH_FIELD_HOLES,
+                            ImmutableMap.of(SEARCH_LAT, lat, SEARCH_LON, lon), SEARCH_DISTANCE_SCALE, null)
+            );
+        }
+
+        SearchResponse response = this.searchClient.search(new SearchRequest().source(searchSourceBuilder.query(query)),
                                                            RequestOptions.DEFAULT);
 
         return new CourseSearchResult(Arrays.stream(response.getHits().getHits())

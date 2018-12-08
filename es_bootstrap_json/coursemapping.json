@@ -5,8 +5,7 @@
       "properties": {
         "holes": {
           "type": "geo_point",
-          "store": "true",
-          "index": false
+          "store": "true"
         },
         "name": {
           "type": "text",

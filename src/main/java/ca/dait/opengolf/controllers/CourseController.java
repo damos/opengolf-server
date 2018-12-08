@@ -28,8 +28,11 @@ public class CourseController {
     }
 
     @RequestMapping(value="search", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public CourseSearchResult search(@RequestParam("searchTerm") String searchTerm) throws IOException {
-        return this.courseService.search(searchTerm);
+    public CourseSearchResult search(@RequestParam(value = "searchTerm", required = false) String searchTerm,
+                                     @RequestParam(value = "lat", required = false) Double lat,
+                                     @RequestParam(value = "lon", required = false) Double lon) throws IOException {
+        //TODO: add input validation
+        return this.courseService.search(searchTerm, lat, lon);
     }
 
     @PreAuthorize(OpenGolfConstants.Auth.IS_CONTRIBUTOR)
