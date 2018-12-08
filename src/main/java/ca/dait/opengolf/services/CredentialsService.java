@@ -52,7 +52,7 @@ public class CredentialsService {
 
     @Autowired
     public CredentialsService(@Value("${ENV_JWK_URL}") String jwkUrl,
-                              @Value("${ENV_AUTH_COOKIE_SECURE:false}") boolean cookieIsSecure,
+                              @Value("${ENV_AUTH_COOKIE_SECURE:true}") boolean cookieIsSecure,
                               @Value("${ENV_REFRESH_COOKIE_TIMEOUT:2592000}") int cookieRefreshTimeout) throws MalformedURLException{
 
         this.jwkProvider = new UrlJwkProvider(new URL(jwkUrl));
