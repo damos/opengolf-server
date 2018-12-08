@@ -40,15 +40,13 @@
             "name": "lat",
             "in": "query",
             "description": "Latitude",
-            "required": false,
-            "type": "double"
+            "type": "number"
           },
           {
             "name": "lon",
             "in": "query",
             "description": "Longitude",
-            "required": false,
-            "type": "double"
+            "type": "number"
           }
         ],
         "responses": {
