@@ -1,10 +1,10 @@
 package ca.dait.opengolf.controllers;
 
 import ca.dait.opengolf.OpenGolfConstants;
+import ca.dait.opengolf.entities.course.Course;
+import ca.dait.opengolf.entities.course.CourseDetails;
+import ca.dait.opengolf.entities.course.CourseSearchResult;
 import ca.dait.opengolf.services.CourseService;
-import ca.dait.opengolf.services.CourseService.Course;
-import ca.dait.opengolf.services.CourseService.CourseDetails;
-import ca.dait.opengolf.services.CourseService.CourseSearchResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

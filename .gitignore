@@ -6,5 +6,6 @@ gradlew.bat
 build/**
 out/**
 **/main.iml
+settings.gradle
 
 

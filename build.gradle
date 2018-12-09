@@ -25,6 +25,11 @@ repositories {
 
 dependencies {
 
+    compile project(':opengolf-entities')
+
+    //Google Gson
+    compile 'com.google.code.gson:gson:2.8.5'
+
     //Google Guava
     compile 'com.google.guava:guava:21.0'
 
@@ -34,7 +39,6 @@ dependencies {
 
     //Elastic Search High Level client (HTTP REST)
     compile 'org.elasticsearch:elasticsearch:6.4.3'
-    //compile 'org.elasticsearch.client:elasticsearch-rest-client:6.4.3'
     compile 'org.elasticsearch.client:elasticsearch-rest-high-level-client:6.4.3'
 
     //AWS Cognito

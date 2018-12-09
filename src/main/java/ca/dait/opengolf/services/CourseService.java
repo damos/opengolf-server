@@ -1,13 +1,13 @@
 package ca.dait.opengolf.services;
 
 import ca.dait.opengolf.awslabs.AWSRequestSigningApacheInterceptor;
+import ca.dait.opengolf.entities.course.Course;
+import ca.dait.opengolf.entities.course.CourseDetails;
+import ca.dait.opengolf.entities.course.CourseSearchResult;
 import com.amazonaws.auth.AWS4Signer;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequestInterceptor;
 import org.elasticsearch.action.delete.DeleteRequest;
@@ -26,9 +26,7 @@ import org.elasticsearch.index.query.FuzzyQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.functionscore.ExponentialDecayFunctionBuilder;
-import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.index.search.MatchQuery;
-import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,8 +34,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 public class CourseService {
@@ -64,7 +60,7 @@ public class CourseService {
     private RestHighLevelClient searchClient;
 
     @Autowired
-    private ObjectMapper mapper;
+    private Gson gson;
 
     @Autowired
     public CourseService(@Value("${ENV_SEARCH_HOST}") String host,
@@ -86,7 +82,7 @@ public class CourseService {
     public CourseDetails get(String id) throws IOException{
         GetRequest getRequest = new GetRequest(SEARCH_INDEX_NAME, SEARCH_TYPE_NAME, id);
         GetResponse response = this.searchClient.get(getRequest, RequestOptions.DEFAULT);
-        return (response.isExists()) ? this.mapper.readValue(response.getSourceAsBytes(), CourseDetails.class) : null;
+        return (response.isExists()) ? this.gson.fromJson(response.getSourceAsString(), CourseDetails.class) : null;
     }
 
     public CourseSearchResult search(String searchTerm, Double lat, Double lon) throws IOException{
@@ -113,7 +109,10 @@ public class CourseService {
                                                            RequestOptions.DEFAULT);
 
         return new CourseSearchResult(Arrays.stream(response.getHits().getHits())
-                                            .map(this::searchHitToCourse)
+                                            .map((hit) -> {
+                                                return new Course(hit.getId(),
+                                                        this.gson.fromJson(hit.getSourceAsString(), CourseDetails.class));
+                                            })
                                             .toArray(Course[]::new));
     }
 
@@ -121,7 +120,7 @@ public class CourseService {
         IndexRequest indexRequest = new IndexRequest();
         indexRequest.index(SEARCH_INDEX_NAME);
         indexRequest.type(SEARCH_TYPE_NAME);
-        indexRequest.source(this.mapper.writeValueAsBytes(courseDetails), XContentType.JSON);
+        indexRequest.source(this.gson.toJson(courseDetails), XContentType.JSON);
         IndexResponse indexResponse = this.searchClient.index(indexRequest, RequestOptions.DEFAULT);
         return new Course(indexResponse.getId());
     }
@@ -131,7 +130,7 @@ public class CourseService {
         updateRequest.index(SEARCH_INDEX_NAME);
         updateRequest.type(SEARCH_TYPE_NAME);
         updateRequest.id(id);
-        updateRequest.doc(this.mapper.writeValueAsBytes(courseDetails), XContentType.JSON);
+        updateRequest.doc(this.gson.toJson(courseDetails), XContentType.JSON);
         this.searchClient.update(updateRequest, RequestOptions.DEFAULT);
     }
 
@@ -141,68 +140,6 @@ public class CourseService {
         deleteRequest.type(SEARCH_TYPE_NAME);
         deleteRequest.id(id);
         this.searchClient.delete(deleteRequest, RequestOptions.DEFAULT);
-    }
-
-    private Course searchHitToCourse(SearchHit hit){
-        try {
-            return new Course(hit.getId(),
-                    this.mapper.readValue(hit.getSourceAsString(), CourseDetails.class));
-        }
-        catch(IOException e){
-            throw new RuntimeException("Failed to marshal SearchHit result into " + CourseDetails.class.getName(), e);
-        }
-    }
-
-    /*
-        Java POJO's for the course service.
-    */
-    public static class CourseSearchResult {
-        private Course results[];
-
-        public CourseSearchResult(Course results[]){
-            this.results = results;
-        }
-    }
-
-    public static class CourseDetails {
-        private String name;
-        private String country;
-        private CourseDetails.Hole holes[];
-
-        @JsonCreator
-        public CourseDetails(@JsonProperty("name") String name,
-                             @JsonProperty("country") String country,
-                             @JsonProperty("holes") CourseDetails.Hole holes[]){
-            this.name = name;
-            this.country = country;
-            this.holes = holes;
-        }
-
-        public static class Hole{
-            private double lat;
-            private double lon;
-
-            @JsonCreator
-            public Hole(@JsonProperty("lat") double lat,
-                        @JsonProperty("lon") double lon){
-                this.lat = lat;
-                this.lon = lon;
-            }
-        }
-    }
-
-    public static class Course {
-        private String id;
-        private CourseDetails details;
-
-        public Course(String id){
-            this.id = id;
-        }
-
-        public Course(String id, CourseDetails details){
-            this.id = id;
-            this.details = details;
-        }
     }
 
 }
