@@ -27,9 +27,6 @@ dependencies {
 
     compile project(':opengolf-entities')
 
-    //Google Gson
-    compile 'com.google.code.gson:gson:2.8.5'
-
     //Google Guava
     compile 'com.google.guava:guava:21.0'
 
