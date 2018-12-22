@@ -21,12 +21,16 @@ import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.document.DocumentField;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.FuzzyQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.ScriptQueryBuilder;
 import org.elasticsearch.index.query.functionscore.ExponentialDecayFunctionBuilder;
 import org.elasticsearch.index.search.MatchQuery;
+import org.elasticsearch.script.Script;
+import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,7 +50,9 @@ public class CourseService {
     private static final String SEARCH_FIELD_COUNTRY = "country";
     private static final String SEARCH_FIELD_HOLES = "holes";
 
-    private static final String SEARCH_ORIGIN_FORMAT = "{\"lat\":%1f,\"lon\":%2f}";
+    private static final String SEARCH_SCRIPT_FIELD_DISTANCE = "distance";
+    private static final String SEARCH_SCRIPT_DISTANCE = "doc['%s'].arcDistance(%f, %f)";
+
     private static final String SEARCH_DISTANCE_SCALE = "2km";
     private static final String SEARCH_LAT = "lat";
     private static final String SEARCH_LON = "lon";
@@ -103,15 +109,28 @@ public class CourseService {
                     new ExponentialDecayFunctionBuilder(SEARCH_FIELD_HOLES,
                             ImmutableMap.of(SEARCH_LAT, lat, SEARCH_LON, lon), SEARCH_DISTANCE_SCALE, null)
             );
+
+            searchSourceBuilder.scriptField(SEARCH_SCRIPT_FIELD_DISTANCE,
+                    new Script(String.format(SEARCH_SCRIPT_DISTANCE, SEARCH_FIELD_HOLES, lat, lon)));
         }
 
-        SearchResponse response = this.searchClient.search(new SearchRequest().source(searchSourceBuilder.query(query)),
+        searchSourceBuilder.query(query);
+
+        SearchResponse response = this.searchClient.search(new SearchRequest().source(searchSourceBuilder),
                                                            RequestOptions.DEFAULT);
 
         return new CourseSearchResult(Arrays.stream(response.getHits().getHits())
                                             .map((hit) -> {
-                                                return new Course(hit.getId(),
-                                                        this.gson.fromJson(hit.getSourceAsString(), CourseDetails.class));
+                                                DocumentField field = hit.getFields().get(SEARCH_SCRIPT_FIELD_DISTANCE);
+                                                if(field != null){
+                                                    Double distance = field.getValue();
+                                                    return new Course(hit.getId(), distance,
+                                                            this.gson.fromJson(hit.getSourceAsString(), CourseDetails.class));
+                                                }
+                                                else{
+                                                    return new Course(hit.getId(),
+                                                            this.gson.fromJson(hit.getSourceAsString(), CourseDetails.class));
+                                                }
                                             })
                                             .toArray(Course[]::new));
     }

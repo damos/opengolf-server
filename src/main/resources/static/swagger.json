@@ -311,6 +311,12 @@
           "example": "uT6hA2cB4AMCtorZQwhS",
           "readOnly": true
         },
+        "distance": {
+          "type": "number",
+          "format": "float",
+          "example": "12345.12345",
+          "readOnly": true
+        },
         "details": {
           "type": "object",
           "$ref": "#/definitions/CourseDetailsSimple"
