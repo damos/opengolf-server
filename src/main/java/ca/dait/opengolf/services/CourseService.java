@@ -114,9 +114,7 @@ public class CourseService {
                     new Script(String.format(SEARCH_SCRIPT_DISTANCE, SEARCH_FIELD_HOLES, lat, lon)));
         }
 
-        searchSourceBuilder.query(query);
-
-        SearchResponse response = this.searchClient.search(new SearchRequest().source(searchSourceBuilder),
+        SearchResponse response = this.searchClient.search(new SearchRequest().source(searchSourceBuilder.query(query)),
                                                            RequestOptions.DEFAULT);
 
         return new CourseSearchResult(Arrays.stream(response.getHits().getHits())
