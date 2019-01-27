@@ -1,5 +1,8 @@
 {
-  "name":"Wyndance Golf Club",
+  "facilityName":"Wyndance Golf Club",
+  "nickName": null,
+  "municipality":"Uxbridge",
+  "state":"ON",
   "country":"Canada",
   "holes":[
     {"lat":44.049138, "lon":-79.166051},

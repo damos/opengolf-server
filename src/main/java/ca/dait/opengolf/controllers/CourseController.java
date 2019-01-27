@@ -2,7 +2,6 @@ package ca.dait.opengolf.controllers;
 
 import ca.dait.opengolf.OpenGolfConstants;
 import ca.dait.opengolf.entities.course.Course;
-import ca.dait.opengolf.entities.course.CourseDetails;
 import ca.dait.opengolf.entities.course.CourseSearchResult;
 import ca.dait.opengolf.services.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +21,8 @@ public class CourseController {
     protected CourseService courseService;
 
     @RequestMapping(value="{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CourseDetails> get(@PathVariable("id") String id) throws IOException {
-        CourseDetails result = this.courseService.get(id);
+    public ResponseEntity<Course> get(@PathVariable("id") String id) throws IOException {
+        Course result = this.courseService.get(id);
         return new ResponseEntity<>(result, (result == null) ? HttpStatus.NOT_FOUND : HttpStatus.OK);
     }
 
@@ -38,14 +37,14 @@ public class CourseController {
     @PreAuthorize(OpenGolfConstants.Auth.IS_CONTRIBUTOR)
     @RequestMapping(method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Course> add(@RequestBody CourseDetails courseDetails) throws IOException {
+    public ResponseEntity<Course> add(@RequestBody Course courseDetails) throws IOException {
         Course result = this.courseService.add(courseDetails);
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
     @PreAuthorize(OpenGolfConstants.Auth.IS_CONTRIBUTOR)
     @RequestMapping(value="{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public void update(@PathVariable("id") String id, @RequestBody CourseDetails courseDetails) throws IOException {
+    public void update(@PathVariable("id") String id, @RequestBody Course courseDetails) throws IOException {
         this.courseService.update(id, courseDetails);
     }
 

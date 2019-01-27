@@ -84,7 +84,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/CourseDetails"
+              "$ref": "#/definitions/Course"
             }
           },
           "404": {
@@ -114,7 +114,7 @@
             "name": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/CourseDetails"
+              "$ref": "#/definitions/Course"
             }
           }
         ],
@@ -172,7 +172,7 @@
             "name": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/CourseDetails"
+              "$ref": "#/definitions/Course"
             }
           }
         ],
@@ -297,16 +297,16 @@
         "results": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/CourseSimple"
+            "$ref": "#/definitions/Course"
           }
         }
       }
     },
-    "CourseSimple": {
+    "Course": {
       "type": "object",
       "required": [ "id", "details" ],
       "properties": {
-        "id": {
+        "remoteId": {
           "type": "string",
           "example": "uT6hA2cB4AMCtorZQwhS",
           "readOnly": true
@@ -317,49 +317,23 @@
           "example": "12345.12345",
           "readOnly": true
         },
-        "details": {
-          "type": "object",
-          "$ref": "#/definitions/CourseDetailsSimple"
-        }
-      }
-    },
-    "CourseDetailsSimple" : {
-      "type": "object",
-      "properties": {
-        "name": {
+        "facilityName": {
           "type": "string",
           "example": "Station Creek Golf Club: South"
         },
-        "country": {
+        "nickName": {
+          "type": "string",
+          "example": "Station Creek Golf Club: South"
+        },
+        "municipality": {
           "type": "string",
           "example": "Canada"
-        }
-      }
-    },
-    "Course": {
-      "type": "object",
-      "required": [ "id", "details" ],
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "uT6hA2cB4AMCtorZQwhS",
-            "readOnly": true
-          },
-          "details": {
-            "type": "object",
-            "$ref": "#/definitions/CourseDetails"
-          }
-        }
-    },
-    "CourseDetails" : {
-      "type": "object",
-      "required": [ "name", "country", "holes" ],
-      "properties" : {
-        "name":{
-          "type": "string",
-          "example": "Station Creek Golf Club: South"
         },
-        "country":{
+        "state": {
+          "type": "string",
+          "example": "Canada"
+        },
+        "country": {
           "type": "string",
           "example": "Canada"
         },

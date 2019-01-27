@@ -1,5 +1,8 @@
 {
-  "name":"Station Creek Golf Club: South",
+  "facilityName":"Station Creek Golf Club",
+  "nickName":"South",
+  "municipality":"Gormley",
+  "state":"ON",
   "country":"Canada",
   "holes":[
     {"lat":43.953080, "lon":-79.372577},

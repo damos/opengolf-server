@@ -1,5 +1,8 @@
 {
-  "name":"Glencairn Golf Club: Scotch Block",
+  "facilityName":"Glencairn Golf Club",
+  "nickName": "Scotch Block",
+  "municipality":"Milton",
+  "state":"ON",
   "country":"Canada",
   "holes":[
     {"lat":43.560174, "lon":-79.945759},

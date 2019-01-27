@@ -3,17 +3,23 @@
     "course": {
       "dynamic": "strict",
       "properties": {
-        "holes": {
-          "type": "geo_point",
-          "store": "true"
-        },
-        "name": {
-          "type": "text",
-          "store": true
+        "municipality": {
+          "type": "text","store": true
         },
         "country": {
-          "type": "text",
-          "store": true
+          "type": "text","store": true
+        },
+        "facilityName": {
+          "type": "text","store": true
+        },
+        "holes": {
+          "type": "geo_point","store": "true"
+        },
+        "nickName": {
+          "type": "text","store": true
+        },
+        "state": {
+          "type": "text","store": true
         }
       }
     }

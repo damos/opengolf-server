@@ -2,7 +2,6 @@ package ca.dait.opengolf.services;
 
 import ca.dait.opengolf.awslabs.AWSRequestSigningApacheInterceptor;
 import ca.dait.opengolf.entities.course.Course;
-import ca.dait.opengolf.entities.course.CourseDetails;
 import ca.dait.opengolf.entities.course.CourseSearchResult;
 import com.amazonaws.auth.AWS4Signer;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
@@ -26,11 +25,9 @@ import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.FuzzyQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.ScriptQueryBuilder;
 import org.elasticsearch.index.query.functionscore.ExponentialDecayFunctionBuilder;
 import org.elasticsearch.index.search.MatchQuery;
 import org.elasticsearch.script.Script;
-import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,8 +43,6 @@ public class CourseService {
 
     private static final String SEARCH_INDEX_NAME = "opengolf";
     private static final String SEARCH_TYPE_NAME = "course";
-    private static final String SEARCH_FIELD_NAME = "name";
-    private static final String SEARCH_FIELD_COUNTRY = "country";
     private static final String SEARCH_FIELD_HOLES = "holes";
 
     private static final String SEARCH_SCRIPT_FIELD_DISTANCE = "distance";
@@ -60,8 +55,7 @@ public class CourseService {
     private static final int SEARCH_START = 0;
     private static final int SEARCH_MAX_ROWS = 50;
 
-    private static final String[] SEARCH_RESULT_INCLUDE_FIELDS = new String[]{SEARCH_FIELD_NAME, SEARCH_FIELD_COUNTRY};
-    private static final String[] SEARCH_RESULT_EXCLUDE_FIELDS = new String[]{};
+    private static final String[] SEARCH_RESULT_INCLUDE_FIELDS = new String[]{"facilityName", "nickName", "city", "state", "country"};
 
     private RestHighLevelClient searchClient;
 
@@ -85,10 +79,10 @@ public class CourseService {
         );
     }
 
-    public CourseDetails get(String id) throws IOException{
+    public Course get(String id) throws IOException{
         GetRequest getRequest = new GetRequest(SEARCH_INDEX_NAME, SEARCH_TYPE_NAME, id);
         GetResponse response = this.searchClient.get(getRequest, RequestOptions.DEFAULT);
-        return (response.isExists()) ? this.gson.fromJson(response.getSourceAsString(), CourseDetails.class) : null;
+        return (response.isExists()) ? this.gson.fromJson(response.getSourceAsString(), Course.class) : null;
     }
 
     public CourseSearchResult search(String searchTerm, Double lat, Double lon) throws IOException{
@@ -96,10 +90,10 @@ public class CourseService {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.from(SEARCH_START);
         searchSourceBuilder.size(SEARCH_MAX_ROWS);
-        searchSourceBuilder.fetchSource(SEARCH_RESULT_INCLUDE_FIELDS, SEARCH_RESULT_EXCLUDE_FIELDS);
+        searchSourceBuilder.fetchSource(true);
 
         QueryBuilder query = (searchTerm == null) ? QueryBuilders.matchAllQuery() :
-                                    QueryBuilders.matchQuery(SEARCH_FIELD_NAME, searchTerm)
+                                    QueryBuilders.multiMatchQuery(searchTerm, SEARCH_RESULT_INCLUDE_FIELDS)
                                                 .fuzziness(FuzzyQueryBuilder.DEFAULT_FUZZINESS)
                                                 .zeroTermsQuery(MatchQuery.ZeroTermsQuery.ALL);
 
@@ -114,6 +108,8 @@ public class CourseService {
                     new Script(String.format(SEARCH_SCRIPT_DISTANCE, SEARCH_FIELD_HOLES, lat, lon)));
         }
 
+        Object obj = new SearchRequest().source(searchSourceBuilder.query(query));
+
         SearchResponse response = this.searchClient.search(new SearchRequest().source(searchSourceBuilder.query(query)),
                                                            RequestOptions.DEFAULT);
 
@@ -122,18 +118,21 @@ public class CourseService {
                                                 DocumentField field = hit.getFields().get(SEARCH_SCRIPT_FIELD_DISTANCE);
                                                 if(field != null){
                                                     Double distance = field.getValue();
-                                                    return new Course(hit.getId(), distance,
-                                                            this.gson.fromJson(hit.getSourceAsString(), CourseDetails.class));
+                                                    Course course = this.gson.fromJson(hit.getSourceAsString(), Course.class);
+                                                    course.setRemoteId(hit.getId());
+                                                    course.setDistance(distance);
+                                                    return course;
                                                 }
                                                 else{
-                                                    return new Course(hit.getId(),
-                                                            this.gson.fromJson(hit.getSourceAsString(), CourseDetails.class));
+                                                    Course course = this.gson.fromJson(hit.getSourceAsString(), Course.class);
+                                                    course.setRemoteId(hit.getId());
+                                                    return course;
                                                 }
                                             })
                                             .toArray(Course[]::new));
     }
 
-    public Course add(CourseDetails courseDetails) throws IOException{
+    public Course add(Course courseDetails) throws IOException{
         IndexRequest indexRequest = new IndexRequest();
         indexRequest.index(SEARCH_INDEX_NAME);
         indexRequest.type(SEARCH_TYPE_NAME);
@@ -142,12 +141,12 @@ public class CourseService {
         return new Course(indexResponse.getId());
     }
 
-    public void update(String id, CourseDetails courseDetails) throws IOException{
+    public void update(String id, Course course) throws IOException{
         UpdateRequest updateRequest = new UpdateRequest();
         updateRequest.index(SEARCH_INDEX_NAME);
         updateRequest.type(SEARCH_TYPE_NAME);
         updateRequest.id(id);
-        updateRequest.doc(this.gson.toJson(courseDetails), XContentType.JSON);
+        updateRequest.doc(this.gson.toJson(course), XContentType.JSON);
         this.searchClient.update(updateRequest, RequestOptions.DEFAULT);
     }
 

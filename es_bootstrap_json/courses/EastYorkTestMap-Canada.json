@@ -1,5 +1,8 @@
 {
-  "name":"East York Test",
+  "facilityName":"East York Test",
+  "nickName": null,
+  "municipality":"East York",
+  "state":"ON",
   "country":"Canada",
   "holes":[
     {"lat":43.685044, "lon":-79.343887},

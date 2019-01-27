@@ -1,5 +1,8 @@
 {
-  "name":"Glencairn Golf Club: Speyside",
+  "facilityName":"Glencairn Golf Club",
+  "nickName": "Speyside",
+  "municipality":"Milton",
+  "state":"ON",
   "country":"Canada",
   "holes":[
     {"lat":43.563667, "lon":-79.941781},

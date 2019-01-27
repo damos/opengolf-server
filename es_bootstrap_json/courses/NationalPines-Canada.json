@@ -1,5 +1,8 @@
 {
-  "name":"National Pines Golf Club",
+  "facilityName":"National Pines Golf Club",
+  "nickName": null,
+  "municipality":"Innisfil",
+  "state":"ON",
   "country":"Canada",
   "holes":[
     {"lat":44.325566, "lon":-79.650606},

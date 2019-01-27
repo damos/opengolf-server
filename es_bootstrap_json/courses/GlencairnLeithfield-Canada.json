@@ -1,5 +1,8 @@
 {
-  "name":"Glencairn Golf Club: Leithfield",
+  "facilityName":"Glencairn Golf Club",
+  "nickName": "Leithfield",
+  "municipality":"Milton",
+  "state":"ON",
   "country":"Canada",
   "holes":[
     {"lat":43.558176, "lon":-79.935559},
