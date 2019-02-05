@@ -14,6 +14,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Define standard API exception handling
+ */
 @ControllerAdvice
 public class OpenGolfExceptionHandler{
 

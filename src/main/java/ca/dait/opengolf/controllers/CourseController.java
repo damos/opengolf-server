@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
+/**
+ * Course API endpoints
+ */
 @RestController
 @RequestMapping(OpenGolfConstants.API.CONTEXT_ROOT + "/course")
 public class CourseController {

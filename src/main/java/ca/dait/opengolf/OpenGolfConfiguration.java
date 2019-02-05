@@ -12,6 +12,12 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 
+/**
+ * Default app config.
+ * - Uses stateless authentication model (session persisted as cookies)
+ * - Return 401 (UNAUTHORIZED) http code if anonymous user attempts to access service restricted to registered users.
+ * - Returns 403 (FORBIDDEN) http code if user is missing the required role (AWS cognito group) to access a service.
+ */
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)

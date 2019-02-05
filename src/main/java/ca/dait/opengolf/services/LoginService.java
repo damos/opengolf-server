@@ -14,6 +14,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Interface to AWS Cognito service
+ */
 @Service
 public class LoginService {
 
@@ -114,6 +117,12 @@ public class LoginService {
         }
     }
 
+    /**
+     * Attempts to get new ID and refresh tokens from AWS cognito with the provided refresh token.
+     *
+     * @param refreshToken
+     * @return
+     */
     public AuthenticationTokens refreshTokens(String refreshToken){
         Map<String, String> authParams = new HashMap<>();
         authParams.put(REFRESH_TOKEN, refreshToken);

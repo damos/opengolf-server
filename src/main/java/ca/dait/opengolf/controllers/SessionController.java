@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * Session API endpoints
+ */
 @RestController
 @RequestMapping(OpenGolfConstants.API.CONTEXT_ROOT + "/session")
 public class SessionController {

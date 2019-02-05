@@ -8,6 +8,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+/**
+ * Container for the users credentials.
+ */
 public class UserCredentials implements Authentication {
 
     private final String principal;

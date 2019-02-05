@@ -26,6 +26,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Handles persistence and verification of the users session. The session is comprised of an AWS ID and refresh token
+ * saved as cookies.
+ */
 @Service
 public class CredentialsService {
 
@@ -61,6 +65,18 @@ public class CredentialsService {
         this.cookieRefreshTimeout = cookieRefreshTimeout;
     }
 
+    /**
+     * Checks the HTTP request for valid session tokens to authorize the user.
+     * - Check for a valid ID token. If valid return the UserCredentials instance.
+     * - If no valid ID token exists, check for a refresh token.
+     *      - If found try to received a new ID token.
+     *
+     * - If no valid tokens found, return null as the user is not authenticated.
+     *
+     * @param request
+     * @param response
+     * @return
+     */
     public UserCredentials verifyCredentials(HttpServletRequest request, HttpServletResponse response){
         UserCredentials result = null;
         AuthenticationTokens tokens = getAuthenticationTokens(request);
@@ -89,15 +105,19 @@ public class CredentialsService {
         return result;
     }
 
+    /**
+     * Attempts to validate the ID JWT token. Return null if the token is invalid.
+     *
+     * @param token
+     * @return
+     */
     protected UserCredentials verifyIdToken(String token){
         try {
             DecodedJWT decodedJWT = JWT.decode(token);
             this.verifyJWT(decodedJWT);
 
             Claim expires = decodedJWT.getClaim(COGNITO_EXPIRATION);
-            if(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
-                    < expires.asLong().longValue()) {
-
+            if(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()) < expires.asLong()) {
                 Claim username = decodedJWT.getClaim(COGNITO_USERNAME);
                 Claim roles = decodedJWT.getClaim(COGNITO_GROUPS);
                 return new UserCredentials(true, username.as(String.class), roles.asArray(String.class));
@@ -109,6 +129,12 @@ public class CredentialsService {
         return null;
     }
 
+    /**
+     * Saves authentication tokens as cookies.
+     *
+     * @param tokens
+     * @param response
+     */
     public void save(AuthenticationTokens tokens, HttpServletResponse response) {
         if (tokens.id != null) {
             Cookie idCookie = new Cookie(ID_COOKIE_NAME, tokens.id);
@@ -128,6 +154,11 @@ public class CredentialsService {
         }
     }
 
+    /**
+     * Clears authentication cookies
+     *
+     * @param response
+     */
     public void clear(HttpServletResponse response){
         this.clearCookie(ID_COOKIE_NAME, response);
         this.clearCookie(REFRESH_COOKIE_NAME, response);
@@ -142,6 +173,12 @@ public class CredentialsService {
         response.addCookie(cookie);
     }
 
+    /**
+     * Verify the provided JWT token
+     *
+     * @param decodedJWT
+     * @throws JwkException
+     */
     private void verifyJWT(DecodedJWT decodedJWT) throws JwkException{
         String keyId = decodedJWT.getKeyId();
         Algorithm algorithm = this.algorithms.get(keyId);
@@ -157,6 +194,12 @@ public class CredentialsService {
         algorithm.verify(decodedJWT);
     }
 
+    /**
+     * Retrieve the authentication tokens from the Request.
+     *
+     * @param request
+     * @return
+     */
     private AuthenticationTokens getAuthenticationTokens(HttpServletRequest request){
         return new AuthenticationTokens(this.getCookieValue(ID_COOKIE_NAME, request),
                 this.getCookieValue(REFRESH_COOKIE_NAME, request));

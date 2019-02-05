@@ -23,6 +23,7 @@ import static org.apache.http.protocol.HttpCoreContext.HTTP_TARGET_HOST;
 /**
  *
  * This class was taken from AWS Labs github here: https://github.com/awslabs/aws-request-signing-apache-interceptor
+ * This is used to sign requests to the AWS Elastic Search instance.
  * - Darin
  *
  * An {@link HttpRequestInterceptor} that signs requests using any AWS {@link Signer}

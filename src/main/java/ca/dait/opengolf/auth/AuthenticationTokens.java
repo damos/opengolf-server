@@ -1,5 +1,8 @@
 package ca.dait.opengolf.auth;
 
+/**
+ * Container for API authentication tokens.
+ */
 public class AuthenticationTokens {
     public final String id;
     public final String refresh;

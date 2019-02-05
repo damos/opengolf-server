@@ -13,6 +13,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * Servlet filter for stateless authentication support. Uses Credentials Service to authenticate the users session
+ * cookies and set the Security Context if applicable.
+ */
 public class StatelessAuthenticationFilter extends GenericFilterBean {
 
     private final CredentialsService credentialsService;
