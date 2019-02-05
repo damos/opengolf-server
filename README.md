@@ -4,4 +4,4 @@ Spring boot application integrated with AWS Cognito and AWS Elastic Search. Prov
 
 Remote course database contains a VERY limited dataset of courses I personally play regularily.
 
-Swagger API available here: https://opengolf.darinamos.ca/
+Swagger available here: https://opengolf.darinamos.ca/
