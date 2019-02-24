@@ -130,8 +130,6 @@ public class CourseService {
                     new Script(String.format(SEARCH_SCRIPT_DISTANCE, SEARCH_FIELD_HOLES, lat, lon)));
         }
 
-        Object obj = new SearchRequest().source(searchSourceBuilder.query(query));
-
         SearchResponse response = this.searchClient.search(new SearchRequest().source(searchSourceBuilder.query(query)),
                                                            RequestOptions.DEFAULT);
 

@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "description": "Open Golf course directory",
+    "description": "Open Golf online course directory. This directory contains a limited directory of courses I personally play regularly.",
     "version": "1.0",
     "title": "Open Golf"
   },
